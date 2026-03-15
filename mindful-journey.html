@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mindful Journey - Your Mental Wellness Companion</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for theme, 3D effects, and animations */
+        :root {
+            --bg-light: #f1f5f9;
+            --bg-dark: #020617; /* Darker, futuristic bg */
+            --card-light: #ffffff;
+            --card-dark: #1e293b;
+            --text-light: #0f172a;
+            --text-dark: #f8fafc;
+            --primary-light: #4f46e5;
+            --primary-dark: #818cf8;
+            --accent-light: #10b981;
+            --accent-dark: #34d399;
+        }
+
+        html.dark {
+            --bg: var(--bg-dark);
+            --card: var(--card-dark);
+            --text: var(--text-dark);
+            --primary: var(--primary-dark);
+            --accent: var(--accent-dark);
+        }
+
+        html.light {
+            --bg: var(--bg-light);
+            --card: var(--card-light);
+            --text: var(--text-light);
+            --primary: var(--primary-light);
+            --accent: var(--accent-light);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            transition: background-color 0.5s ease, color 0.5s ease;
+            overflow: hidden; /* Prevent scrollbars during page transitions */
+        }
+        
+        #vanta-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -10;
+        }
+
+        .main-container {
+            perspective: 1500px;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+        }
+        
+        /* Each section is a "page" */
+        .page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backface-visibility: hidden;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.8s ease;
+            opacity: 1;
+        }
+
+        /* Initial state for pages that are not active */
+        .page:not(.active) {
+            transform: rotateY(90deg) scale(0.8);
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .card-3d {
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease, box-shadow 0.5s ease;
+            max-width: 90%;
+            width: 500px;
+        }
+        
+        .card-3d:hover {
+            transform: translateZ(20px) rotateY(-5deg) rotateX(5deg);
+            box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            background-image: linear-gradient(to right, var(--primary) 0%, #6366f1 51%, var(--primary) 100%);
+            background-size: 200% auto;
+            color: white;
+            transition: all 0.3s ease;
+            transform: translateZ(20px); /* Bring buttons forward */
+        }
+
+        .btn-primary:hover {
+            background-position: right center;
+            transform: translateZ(30px) scale(1.05); /* Enhance 3D effect on hover */
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .mood-rating-option {
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+
+        .mood-rating-option:hover {
+            transform: scale(1.1);
+        }
+
+        .mood-rating-option.selected {
+            background-color: var(--primary) !important;
+            color: white;
+            transform: scale(1.15);
+        }
+
+        /* Animation for results */
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        .animate-fade-in-scale {
+            animation: fadeInScale 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+        }
+
+        /* Custom glassmorphism effect for cards */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        html.dark .glass-card {
+             background: rgba(30, 41, 59, 0.4); /* Darker glass effect */
+             border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+    </style>
+</head>
+<body class="transition-colors duration-300">
+
+    <!-- 3D Background Container -->
+    <div id="vanta-bg"></div>
+
+    <!-- Theme Toggle Button -->
+    <button id="theme-toggle" class="fixed top-6 right-6 z-50 p-3 rounded-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm shadow-md text-slate-800 dark:text-slate-200">
+        <svg id="theme-icon-light" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+        <svg id="theme-icon-dark" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+    </button>
+    
+    <main class="main-container">
+
+        <!-- Page 1: Sign Up / Register -->
+        <section id="page-signup" class="page active">
+            <div class="card-3d glass-card text-center">
+                <h1 class="text-4xl font-bold mb-2 tracking-tight">Join Mindful Journey</h1>
+                <p class="text-lg opacity-80 mb-8">Create an account to start your reflection.</p>
+                <div class="space-y-4">
+                    <input id="signup-username" type="text" placeholder="Username" class="w-full p-3 rounded-lg bg-white/50 dark:bg-slate-700/50 border border-transparent focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition">
+                    <input id="signup-password" type="password" placeholder="Password" class="w-full p-3 rounded-lg bg-white/50 dark:bg-slate-700/50 border border-transparent focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition">
+                     <input id="signup-password-confirm" type="password" placeholder="Confirm Password" class="w-full p-3 rounded-lg bg-white/50 dark:bg-slate-700/50 border border-transparent focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition">
+                    <button id="signup-btn" class="btn-primary w-full p-3 rounded-lg font-bold text-lg">Create Account</button>
+                    <p id="signup-error" class="text-red-500 text-sm hidden">An error occurred. Please check your details.</p>
+                </div>
+                <p class="text-sm mt-6 opacity-80">
+                    Already have an account? <button data-target="page-login" class="font-bold text-[var(--primary)] hover:underline">Log In</button>
+                </p>
+            </div>
+        </section>
+
+        <!-- Page 2: Login -->
+        <section id="page-login" class="page">
+            <div class="card-3d glass-card text-center">
+                <h1 class="text-4xl font-bold mb-2 tracking-tight">Welcome Back</h1>
+                <p class="text-lg opacity-80 mb-8">Log in to continue your journey.</p>
+                <div class="space-y-4">
+                    <input id="login-username" type="text" placeholder="Username" class="w-full p-3 rounded-lg bg-white/50 dark:bg-slate-700/50 border border-transparent focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition">
+                    <input id="login-password" type="password" placeholder="Password" class="w-full p-3 rounded-lg bg-white/50 dark:bg-slate-700/50 border border-transparent focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition">
+                    <button id="login-btn" class="btn-primary w-full p-3 rounded-lg font-bold text-lg">Login</button>
+                    <p id="login-error" class="text-red-500 text-sm hidden">Invalid credentials. Please try again.</p>
+                </div>
+                 <p class="text-sm mt-6 opacity-80">
+                    Don't have an account? <button data-target="page-signup" class="font-bold text-[var(--primary)] hover:underline">Sign Up</button>
+                </p>
+            </div>
+        </section>
+
+        <!-- Page 3: Dashboard -->
+        <section id="page-dashboard" class="page">
+            <div class="card-3d glass-card text-center">
+                <h1 class="text-4xl font-bold mb-2">Hello, <span id="dashboard-username">Friend</span>!</h1>
+                <p class="text-lg opacity-80 mb-8">How are you feeling today? Let's find out.</p>
+                <div class="space-y-4">
+                    <button data-target="page-journal" class="btn-primary w-full p-4 rounded-lg font-bold text-lg">
+                        Start New Journal Entry
+                    </button>
+                    <button id="view-history-btn" data-target="page-history" class="bg-slate-200 dark:bg-slate-600 w-full p-4 rounded-lg font-bold text-lg hover:bg-slate-300 dark:hover:bg-slate-500 transition">
+                        View Past Entries
+                    </button>
+                    <button data-target="page-signup" class="text-sm opacity-60 mt-4 hover:opacity-100 transition">Logout</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Page 4: Journal Quiz -->
+        <section id="page-journal" class="page">
+            <div id="journal-card" class="card-3d glass-card w-full max-w-xl">
+                 <div id="quiz-container"></div>
+            </div>
+        </section>
+
+        <!-- Page 5: Results -->
+        <section id="page-results" class="page">
+            <div id="results-card" class="card-3d glass-card text-center">
+                <!-- Results will be injected here by JS -->
+            </div>
+        </section>
+
+        <!-- Page 6: Suggestions -->
+        <section id="page-suggestions" class="page">
+            <div id="suggestions-card" class="card-3d glass-card w-full max-w-2xl">
+                 <!-- Suggestions will be injected here by JS -->
+            </div>
+        </section>
+
+        <!-- Page 7: History -->
+        <section id="page-history" class="page">
+            <div class="card-3d glass-card w-full max-w-2xl">
+                <h2 class="text-3xl font-bold mb-6 text-center">Your Past Entries</h2>
+                <div id="history-container" class="space-y-4 max-h-[60vh] overflow-y-auto pr-4">
+                     <!-- History will be loaded here from the backend -->
+                     <p class="text-center opacity-70">Loading history...</p>
+                </div>
+                 <button data-target="page-dashboard" class="btn-primary w-full p-3 rounded-lg font-bold text-lg mt-8">Back to Dashboard</button>
+            </div>
+        </section>
+
+    </main>
+    
+    <!-- Vanta.js for 3D background -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- 3D BACKGROUND INITIALIZATION ---
+            let vantaEffect; // Define vantaEffect in a broader scope
+            vantaEffect = VANTA.NET({
+                el: "#vanta-bg",
+                mouseControls: true,
+                touchControls: true,
+                gyroControls: false,
+                minHeight: 200.00,
+                minWidth: 200.00,
+                scale: 1.00,
+                scaleMobile: 1.00,
+                color: 0x4f46e5,
+                backgroundColor: 0x1e293b,
+                points: 10.00,
+                maxDistance: 25.00,
+                spacing: 20.00
+            });
+            // Update Vanta theme on toggle
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.attributeName === "class") {
+                        const isDark = document.documentElement.classList.contains('dark');
+                        if (vantaEffect) {
+                            vantaEffect.setOptions({
+                               color: isDark ? 0x818cf8 : 0x4f46e5,
+                               backgroundColor: isDark ? 0x020617 : 0xf1f5f9
+                            });
+                        }
+                    }
+                });
+            });
+            observer.observe(document.documentElement, { attributes: true });
+
+
+            // --- STATE & DATA ---
+            const questions = [
+                { id: 1, text: "On a scale of 1 to 5, how energetic do you feel right now?" },
+                { id: 2, text: "How would you rate your quality of sleep last night?" },
+                { id: 3, text: "How connected do you feel to others today?" },
+                { id: 4, text: "Rate your current level of focus and concentration." },
+                { id: 5, text: "How optimistic are you feeling about the future?" },
+                { id: 6, text: "How would you describe your current stress level?" },
+                { id: 7, text: "To what extent are you enjoying your daily activities?" },
+                { id: 8, text: "How well have you been able to manage your emotions today?" },
+                { id: 9, text: "How would you rate your overall physical well-being?" },
+                { id: 10, text: "How hopeful and positive is your general outlook on life right now?" }
+            ];
+            let userAnswers = {};
+            let currentQuestionIndex = 0;
+            let loggedInUser = null; // Store user info after login
+
+            // --- NAVIGATION ---
+            const pages = document.querySelectorAll('.page');
+            
+            function navigateTo(pageId) {
+                // Special case for logout: reset user data and go to signup
+                if (pageId === 'page-signup') {
+                    loggedInUser = null;
+                }
+                pages.forEach(page => {
+                    page.classList.toggle('active', page.id === pageId);
+                });
+            }
+
+            // Must re-query navButtons inside DOMContentLoaded to catch all buttons
+            const navButtons = document.querySelectorAll('[data-target]');
+            navButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetPageId = button.getAttribute('data-target');
+                    if (targetPageId === 'page-journal') startQuiz();
+                    navigateTo(targetPageId);
+                });
+            });
+
+            // --- THEME TOGGLE ---
+            const themeToggle = document.getElementById('theme-toggle');
+            themeToggle.addEventListener('click', () => {
+                document.documentElement.classList.toggle('dark');
+                document.documentElement.classList.toggle('light');
+                document.getElementById('theme-icon-light').classList.toggle('hidden');
+                document.getElementById('theme-icon-dark').classList.toggle('hidden');
+            });
+            
+            // --- BACKEND INTEGRATION (MOCK) ---
+            
+            // 1. SIGN UP
+            const signupBtn = document.getElementById('signup-btn');
+            const signupError = document.getElementById('signup-error');
+
+            signupBtn.addEventListener('click', async () => {
+                const username = document.getElementById('signup-username').value;
+                const password = document.getElementById('signup-password').value;
+                const confirmPassword = document.getElementById('signup-password-confirm').value;
+
+                signupError.classList.add('hidden');
+
+                // Basic validation
+                if (!username || !password || !confirmPassword) {
+                    signupError.textContent = "Please fill in all fields.";
+                    signupError.classList.remove('hidden');
+                    return;
+                }
+                if (password !== confirmPassword) {
+                    signupError.textContent = "Passwords do not match.";
+                    signupError.classList.remove('hidden');
+                    return;
+                }
+                if (!/\d/.test(username)) {
+                    signupError.textContent = "Username must contain at least one number.";
+                    signupError.classList.remove('hidden');
+                    return;
+                }
+
+                // ** REAL BACKEND CALL - Replace this with your actual fetch call for registration **
+                // try {
+                //     const response = await fetch('/api/register', {
+                //         method: 'POST',
+                //         headers: { 'Content-Type': 'application/json' },
+                //         body: JSON.stringify({ username, password })
+                //     });
+                //     if (!response.ok) throw new Error('Registration failed');
+                //     loggedInUser = await response.json(); // e.g., { id: 1, username: 'user' }
+                //     document.getElementById('dashboard-username').textContent = loggedInUser.username;
+                //     navigateTo('page-dashboard');
+                // } catch (error) {
+                //     signupError.textContent = "Username might already be taken.";
+                //     signupError.classList.remove('hidden');
+                // }
+
+                // Mock logic for demonstration
+                console.log("Mock Registration:", { username, password });
+                loggedInUser = { id: Math.floor(Math.random() * 100), username: username };
+                document.getElementById('dashboard-username').textContent = loggedInUser.username;
+                navigateTo('page-dashboard');
+            });
+
+
+            // 2. LOGIN
+            const loginBtn = document.getElementById('login-btn');
+            loginBtn.addEventListener('click', async () => {
+                const username = document.getElementById('login-username').value;
+                const password = document.getElementById('login-password').value;
+                const loginError = document.getElementById('login-error');
+
+                loginError.classList.add('hidden');
+                
+                // ** REAL BACKEND CALL - Replace this with your actual fetch call **
+                // try {
+                //     const response = await fetch('/api/login', {
+                //         method: 'POST',
+                //         headers: { 'Content-Type': 'application/json' },
+                //         body: JSON.stringify({ username, password })
+                //     });
+                //     if (!response.ok) throw new Error('Login failed');
+                //     loggedInUser = await response.json();
+                //     document.getElementById('dashboard-username').textContent = loggedInUser.username;
+                //     navigateTo('page-dashboard');
+                // } catch (error) {
+                //     loginError.classList.remove('hidden');
+                // }
+
+                // --- Mock logic for demonstration ---
+                if (username && password) {
+                    loggedInUser = { id: Math.floor(Math.random() * 100), username: username };
+                    document.getElementById('dashboard-username').textContent = loggedInUser.username;
+                    navigateTo('page-dashboard');
+                } else {
+                    loginError.classList.remove('hidden');
+                }
+            });
+
+            // 3. SUBMIT JOURNAL
+            async function submitJournalEntry(entryData) {
+                console.log("Submitting to backend:", entryData);
+                // ** REAL BACKEND CALL **
+            }
+
+            // 4. FETCH HISTORY
+            const viewHistoryBtn = document.getElementById('view-history-btn');
+            const historyContainer = document.getElementById('history-container');
+            viewHistoryBtn.addEventListener('click', async () => {
+                // ** REAL BACKEND CALL **
+                const mockHistory = [
+                     { date: "October 03, 2025", score: 42, mood: "Feeling Positive", color: "text-[var(--accent)]", summary: "Suggested connecting with loved ones." },
+                     { date: "October 02, 2025", score: 18, mood: "Feeling a Bit Down", color: "text-amber-500", summary: "Suggested light meditation." },
+                     { date: "September 29, 2025", score: 31, mood: "Feeling Balanced", color: "text-indigo-400", summary: "Suggested a mindful walk." }
+                ];
+                renderHistory(mockHistory);
+            });
+
+            function renderHistory(historyData) {
+                if(historyData.length === 0) {
+                    historyContainer.innerHTML = `<p class="text-center opacity-70">No past entries found.</p>`;
+                    return;
+                }
+                historyContainer.innerHTML = historyData.map(entry => `
+                    <div class="p-4 rounded-lg bg-white/50 dark:bg-slate-600/50">
+                        <p class="font-bold text-lg">${entry.date}</p>
+                        <p>Mood Score: ${entry.score} - <span class="${entry.color} font-semibold">${entry.mood}</span></p>
+                        <p class="text-sm opacity-80 mt-1">${entry.summary}</p>
+                    </div>
+                `).join('');
+            }
+
+
+            // --- QUIZ LOGIC ---
+            const quizContainer = document.getElementById('quiz-container');
+
+            function startQuiz() {
+                currentQuestionIndex = 0;
+                userAnswers = {};
+                renderQuestion();
+            }
+
+            function renderQuestion() {
+                const question = questions[currentQuestionIndex];
+                if (!question) {
+                    calculateResults();
+                    return;
+                }
+
+                quizContainer.innerHTML = `
+                    <div class="animate-fade-in-scale">
+                        <p class="text-sm opacity-60 text-center mb-2">Question ${currentQuestionIndex + 1} of ${questions.length}</p>
+                        <h2 class="text-2xl font-semibold mb-6 text-center">${question.text}</h2>
+                        <div class="flex justify-center items-center space-x-2 sm:space-x-4 mb-2">
+                            ${[1,2,3,4,5].map(rating => `
+                                <button class="mood-rating-option w-12 h-12 sm:w-14 sm:h-14 rounded-full font-bold text-xl flex items-center justify-center bg-slate-200 dark:bg-slate-600" data-rating="${rating}">${rating}</button>
+                            `).join('')}
+                        </div>
+                        <div class="flex justify-between items-center text-xs opacity-70 px-4 sm:px-8 mb-8">
+                            <span>Not at all / Bad</span>
+                            <span>Very much / Good</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <button id="back-btn" class="text-sm opacity-60 hover:opacity-100 transition" ${currentQuestionIndex === 0 ? 'disabled' : ''}>Back</button>
+                            <button data-target="page-dashboard" class="text-sm opacity-60 hover:opacity-100 transition">Exit</button>
+                        </div>
+                    </div>
+                `;
+
+                // Re-attach event listeners for the newly created elements
+                quizContainer.querySelectorAll('.mood-rating-option').forEach(button => {
+                    button.addEventListener('click', () => handleRatingClick(parseInt(button.dataset.rating)));
+                });
+                quizContainer.querySelector('button[data-target="page-dashboard"]').addEventListener('click', () => navigateTo('page-dashboard'));
+
+                if (currentQuestionIndex > 0) {
+                    quizContainer.querySelector('#back-btn').addEventListener('click', () => {
+                        currentQuestionIndex--;
+                        renderQuestion();
+                    });
+                }
+            }
+            
+            function handleRatingClick(rating) {
+                if (currentQuestionIndex >= questions.length) return;
+                
+                userAnswers[questions[currentQuestionIndex].id] = rating;
+                const buttons = quizContainer.querySelectorAll('.mood-rating-option');
+                buttons.forEach(btn => btn.classList.remove('selected'));
+                buttons[rating - 1].classList.add('selected');
+
+                setTimeout(() => {
+                    currentQuestionIndex++;
+                    renderQuestion();
+                }, 400);
+            }
+
+            // --- RESULTS & SUGGESTIONS LOGIC ---
+            function calculateResults() {
+                const totalScore = Object.values(userAnswers).reduce((sum, val) => sum + val, 0);
+                let mood, description, emoji, color;
+
+                if (totalScore <= 15) { mood = "Feeling Very Low"; description = "A tough day. Be kind to yourself. We have gentle suggestions."; emoji = "😔"; color = "text-red-500"; } 
+                else if (totalScore <= 25) { mood = "Feeling a Bit Down"; description = "Things seem heavy. Let's find a moment of peace."; emoji = "😟"; color = "text-amber-500"; } 
+                else if (totalScore <= 35) { mood = "Feeling Balanced"; description = "Navigating steadily. Let's maintain this equilibrium."; emoji = "🙂"; color = "text-indigo-400"; } 
+                else if (totalScore <= 45) { mood = "Feeling Positive"; description = "Good energy! Let's build on this positive momentum."; emoji = "😊"; color = "text-[var(--accent)]"; } 
+                else { mood = "Feeling Radiant"; description = "Shining brightly! Let's share this wonderful energy."; emoji = "😄"; color = "text-green-400"; }
+
+                displayResults(totalScore, mood, description, emoji, color);
+                generateSuggestions(totalScore, mood);
+                
+                const entryData = {
+                    userId: loggedInUser.id,
+                    totalScore: totalScore,
+                    moodCategory: mood,
+                    answers: userAnswers
+                };
+                submitJournalEntry(entryData);
+
+                setTimeout(() => navigateTo('page-results'), 500);
+            }
+            
+            function displayResults(score, mood, description, emoji, color) {
+                const resultsCard = document.getElementById('results-card');
+                resultsCard.innerHTML = `
+                    <div class="animate-fade-in-scale">
+                        <p class="text-7xl mb-4">${emoji}</p>
+                        <h2 class="text-3xl font-bold mb-2 ${color}">${mood}</h2>
+                        <p class="text-xl font-medium mb-4">Your Score: ${score} / 50</p>
+                        <p class="opacity-80 mb-8">${description}</p>
+                        <button data-target="page-suggestions" class="btn-primary w-full p-3 rounded-lg font-bold text-lg">See My Suggestions</button>
+                    </div>
+                `;
+                resultsCard.querySelector('[data-target]').addEventListener('click', () => navigateTo('page-suggestions'));
+            }
+
+            function generateSuggestions(score, mood) {
+                 const baseSuggestions = [
+                    { icon: '💧', title: 'Stay Hydrated', desc: 'Drinking water is crucial for mental and physical health.' },
+                    { icon: '🚶‍♂️', title: 'Mindful Walk', desc: 'Take a short walk. Pay attention to your surroundings.' }
+                 ];
+                 let specificSuggestions = [];
+                 if (score <= 25) { // Low
+                    specificSuggestions = [ { icon: '🧘‍♀️', title: 'Guided Meditation', desc: 'Try a 5-minute guided meditation for anxiety or stress.' }, { icon: '🎵', title: 'Calming Music', desc: 'Listen to a calming instrumental playlist or nature sounds.' }, { icon: '✍️', title: 'Expressive Journaling', desc: 'Write down your thoughts and feelings without judgment.' } ];
+                 } else if (score <= 35) { // Balanced
+                     specificSuggestions = [ { icon: '📚', title: 'Read a Chapter', desc: 'Engage your mind with a book you enjoy.' }, { icon: '🌱', title: 'Plan Something Nice', desc: 'Organize a small, enjoyable activity for tomorrow.' }, { icon: '💪', title: 'Light Exercise', desc: 'Stretching or yoga can help maintain balance and release tension.' } ];
+                 } else { // Positive
+                     specificSuggestions = [ { icon: '🤝', title: 'Connect with Someone', desc: 'Share your positive energy. Call a friend or family member.' }, { icon: '🌟', title: 'Set a Small Goal', desc: 'Use your momentum to tackle a small task.' }, { icon: '🎉', title: 'Practice Gratitude', desc: 'List three things you are grateful for right now.' } ];
+                 }
+
+                 const allSuggestions = [...specificSuggestions, ...baseSuggestions];
+                 const suggestionsCard = document.getElementById('suggestions-card');
+                 suggestionsCard.innerHTML = `
+                    <h2 class="text-3xl font-bold mb-1 text-center">Personalized Suggestions</h2>
+                    <p class="text-center opacity-80 mb-6">Based on your mood: <span class="font-semibold">${mood}</span></p>
+                    <div class="space-y-4 max-h-[50vh] overflow-y-auto pr-2">
+                        ${allSuggestions.map(sugg => `
+                            <div class="p-4 rounded-lg bg-white/50 dark:bg-slate-600/50 flex items-start space-x-4">
+                                <div class="text-3xl mt-1">${sugg.icon}</div>
+                                <div><h3 class="font-bold text-lg">${sugg.title}</h3><p class="opacity-90">${sugg.desc}</p></div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button data-target="page-dashboard" class="btn-primary w-full p-3 rounded-lg font-bold text-lg mt-8">Back to Dashboard</button>
+                 `;
+                suggestionsCard.querySelector('[data-target]').addEventListener('click', () => navigateTo('page-dashboard'));
+            }
+
+            // Initial setup
+            navigateTo('page-signup');
+        });
+    </script>
+</body>
+</html>
